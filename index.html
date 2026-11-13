@@ -66,6 +66,9 @@
   .video video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; background: #2a2226; }
   .grandes { display: grid; grid-template-columns: repeat(3, 1fr); margin: 10px 12px 0; border: 1px solid var(--linha-fina); border-radius: 10px; overflow: hidden; }
   .grande { padding: 7px 9px; text-align: center; }
+  .grande.zero b { color: var(--suave); font-weight: 500; }
+  .cartao { transition: box-shadow .15s, transform .15s; }
+  .cartao:hover { box-shadow: 0 6px 20px rgba(40,30,20,.08); transform: translateY(-1px); }
   .grande + .grande { border-left: 1px solid var(--linha-fina); }
   .grande small { display: block; font-size: 11px; color: var(--suave); }
   .grande b { font-size: 16px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
@@ -194,11 +197,11 @@
       <div class="topo"><span class="selo ${f.veredito}">${V.emo} ${V.nome}</span>
         <span class="ligado ${f.ligado ? "on" : ""}">${f.ligado ? "● Ligado" : f.estado === "DISAPPROVED" ? "Rejeitado" : "Em pausa"}</span></div>
       <div class="codigo"><b>${f.bandeira} ${esc(f.codigo)}</b>${esc(f.concorrente || "")} · ${esc(f.conjunto.replace("AdSet - ", ""))}</div>
-      <div class="video"><video controls playsinline preload="none" data-src="${video(f)}#t=0.1"></video></div>
+      <div class="video"><video playsinline preload="none" data-src="${video(f)}#t=0.1"></video></div>
       <div class="grandes">
         <div class="grande"><small>Gasto</small><b>${eur(f.gasto)}</b></div>
-        <div class="grande"><small>Compras</small><b>${nf(f.compras)}</b></div>
-        <div class="grande"><small>ROAS</small><b>${f.gasto ? nf(f.roas, 2) : "-"}</b></div>
+        <div class="grande${f.compras ? "" : " zero"}"><small>Compras</small><b>${nf(f.compras)}</b></div>
+        <div class="grande${f.roas ? "" : " zero"}"><small>ROAS</small><b>${f.gasto ? nf(f.roas, 2) : "-"}</b></div>
       </div>
       <div class="pequenos">
         <span>Hook<b>${pct(f.hook)}</b></span><span>Hold<b>${pct(f.hold)}</b></span>
@@ -236,7 +239,12 @@
     aviso.textContent = "Ainda nenhum anúncio passou a vencedor: estão no ar há pouco tempo. Esta página atualiza-se sozinha a cada 30 minutos.";
     document.getElementById("lista").innerHTML = I.length ? I.map(cartao).join("")
       : `<div class="vazio"><b>Nada aqui por agora</b>${est.v === "vencedor" ? "Quando um anúncio tiver 3 compras com ROAS de 2 ou mais, aparece aqui." : "Experimenta outro filtro."}</div>`;
-    document.querySelectorAll("video[data-src]").forEach((v) => io.observe(v));
+    document.querySelectorAll("video[data-src]").forEach((v) => {
+      io.observe(v);
+      v.onmouseenter = () => { v.controls = true; };
+      v.onmouseleave = () => { if (v.paused) v.controls = false; };
+      v.onclick = () => { if (!v.controls) { v.controls = true; v.play(); } };
+    });
     document.querySelectorAll("[data-copia]").forEach((b) => b.onclick = () => {
       const f = D.itens.find((x) => x.id === b.dataset.id);
       const t = b.dataset.copia === "texto" ? f.texto : b.dataset.copia === "titulo" ? f.titulo : f.link;
