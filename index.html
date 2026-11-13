@@ -132,12 +132,6 @@
 </header>
 
 <section class="vazio-plat" id="vazio-plat" hidden></section>
-<section class="passos">
-  <div class="passo"><b>🏆 Vencedor</b>3 ou mais compras e ROAS de 2 ou mais. Copiar já.</div>
-  <div class="passo"><b>🌱 Promissor</b>Já vendeu com lucro, falta confirmar. Preparar.</div>
-  <div class="passo"><b>⏳ Em teste</b>Menos de 20 € gastos. Ainda é cedo, esperar.</div>
-  <div class="passo"><b>❌ Não copiar</b>Gastou sem vender ou dá prejuízo.</div>
-</section>
 
 <div class="filtros">
   <div class="grupo" id="f-veredito"></div>
@@ -269,7 +263,7 @@
     document.getElementById("titulo").textContent = PLAT[plat].t;
     document.getElementById("desc").textContent = PLAT[plat].d;
     const meta = plat === "meta";
-    for (const sel of ["#chips", ".passos", ".filtros", "#lista", "#rodape"]) document.querySelector(sel).hidden = !meta;
+    for (const sel of ["#chips", ".filtros", "#lista", "#rodape"]) document.querySelector(sel).hidden = !meta;
     document.getElementById("aviso").hidden = !meta || D.itens.some((f) => f.veredito === "vencedor");
     const v = document.getElementById("vazio-plat");
     v.hidden = meta;
