@@ -110,6 +110,14 @@
   .plats button.ativo { background: #fff; color: var(--ameixa-escuro); opacity: 1; }
   .vazio-plat { margin: 18px var(--margem) 56px; padding: 56px 24px; text-align: center; background: var(--cartao); border: 1px dashed var(--linha); border-radius: 16px; color: var(--suave); }
   .vazio-plat b { display: block; font-size: 19px; color: var(--texto); margin-bottom: 6px; }
+  /* a cor do topo segue a plataforma: Facebook azul, Google amarelo, TikTok preto */
+  .hero.meta { background: linear-gradient(135deg, #0b4fb8 0%, #1877f2 60%, #5aa0f7 100%); }
+  .hero.google { background: linear-gradient(135deg, #e0a100 0%, #fbbc04 60%, #fdd663 100%); color: #2b2205; }
+  .hero.google p, .hero.google .plats button { color: #2b2205; }
+  .hero.google .plats { background: rgba(0,0,0,.08); }
+  .hero.tiktok .plats { background: rgba(255,255,255,.1); }
+  .hero.tiktok { background: linear-gradient(135deg, #000 0%, #161823 60%, #2a2d3a 100%); box-shadow: inset 4px 0 0 #25f4ee, inset -4px 0 0 #fe2c55; }
+  .hero.meta .plats button.ativo { color: #0b4fb8; } .hero.google .plats button.ativo { color: #8a6500; } .hero.tiktok .plats button.ativo { color: #161823; }
 </style>
 </head>
 <body>
@@ -256,6 +264,7 @@
   function mostraPlat() {
     if (!PLAT[plat]) plat = "meta";
     document.querySelectorAll("#plats button").forEach((b) => b.classList.toggle("ativo", b.dataset.p === plat));
+    document.querySelector(".hero").className = "hero " + plat;
     document.getElementById("titulo").textContent = PLAT[plat].t;
     document.getElementById("desc").textContent = PLAT[plat].d;
     const meta = plat === "meta";
