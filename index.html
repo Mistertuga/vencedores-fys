@@ -123,17 +123,22 @@
   /* topo claro, para os três botões se verem nas suas cores */
   .hero, .hero.meta, .hero.google, .hero.tiktok { background: var(--cartao); color: var(--texto); border: 1px solid var(--linha); box-shadow: none; }
   .hero p { color: var(--suave) !important; }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px 32px; align-items: center; }
+  .hero .chips { display: grid; grid-template-columns: repeat(3, minmax(130px, auto)); gap: 8px; margin: 0; }
+  .hero .chips .chip { justify-content: flex-start; padding: 10px 14px; border-radius: 12px; }
+  .hero .chips[hidden] { display: none !important; }
+  @media (max-width: 1100px) { .hero { grid-template-columns: 1fr; } .hero .chips { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
   .hero .chip { background: var(--fundo); border-color: var(--linha); color: var(--texto); }
 </style>
 </head>
 <body>
-<header class="hero">
+<header class="hero"><div class="esq">
   <div class="plats" id="plats">
     <button data-p="meta">📘 <span class="lg">Facebook Meta Ads</span><span class="ct">Meta</span></button><button data-p="google">🔎 <span class="lg">Google Ads</span><span class="ct">Google</span></button><button data-p="tiktok">🎵 <span class="lg">TikTok Ads</span><span class="ct">TikTok</span></button>
   </div>
   <h1 id="titulo">📣 Anúncios ativos ForYouSong</h1>
   <p id="desc">Os anúncios que temos a correr no Facebook e como está a correr cada um. Quando um passa a vencedor, fica pronto para meter no Google e no TikTok Shop, com o vídeo e o texto prontos a levar.</p>
-  <div class="chips" id="chips"></div>
+  </div><div class="chips" id="chips"></div>
 </header>
 
 <section class="vazio-plat" id="vazio-plat" hidden></section>
