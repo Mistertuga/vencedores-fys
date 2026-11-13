@@ -104,20 +104,21 @@
     main { grid-template-columns: 1fr; }
 
   }
-  .plats { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 18px; background: rgba(0,0,0,.14); border-radius: 12px; flex-wrap: wrap; }
-  .plats button { border: 0; background: none; color: #fff; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 9px; cursor: pointer; opacity: .85; }
-  .plats button:hover { opacity: 1; background: rgba(255,255,255,.12); }
-  .plats button.ativo { background: #fff; color: var(--ameixa-escuro); opacity: 1; }
+  /* três botões, cada um com a cor da sua plataforma */
+  .plats { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .plats button { display: flex; align-items: center; gap: 8px; border: 2px solid transparent; color: #fff; font-size: 15px; font-weight: 650;
+                  padding: 11px 20px; border-radius: 12px; cursor: pointer; opacity: .7; transition: opacity .15s, transform .15s; }
+  .plats button:hover { opacity: .85; }
+  .plats button.ativo { opacity: 1; box-shadow: 0 0 0 3px #fff, 0 0 0 5px currentColor; }
+  .plats [data-p=meta] { background: #1877f2; } .plats [data-p=meta].ativo { color: #fff; box-shadow: 0 0 0 3px var(--cartao), 0 0 0 5px #1877f2; }
+  .plats [data-p=google] { background: #fbbc04; color: #2b2205; } .plats [data-p=google].ativo { box-shadow: 0 0 0 3px var(--cartao), 0 0 0 5px #fbbc04; }
+  .plats [data-p=tiktok] { background: #111; } .plats [data-p=tiktok].ativo { box-shadow: 0 0 0 3px var(--cartao), 0 0 0 5px #111; }
   .vazio-plat { margin: 18px var(--margem) 56px; padding: 56px 24px; text-align: center; background: var(--cartao); border: 1px dashed var(--linha); border-radius: 16px; color: var(--suave); }
   .vazio-plat b { display: block; font-size: 19px; color: var(--texto); margin-bottom: 6px; }
-  /* a cor do topo segue a plataforma: Facebook azul, Google amarelo, TikTok preto */
-  .hero.meta { background: linear-gradient(135deg, #0b4fb8 0%, #1877f2 60%, #5aa0f7 100%); }
-  .hero.google { background: linear-gradient(135deg, #e0a100 0%, #fbbc04 60%, #fdd663 100%); color: #2b2205; }
-  .hero.google p, .hero.google .plats button { color: #2b2205; }
-  .hero.google .plats { background: rgba(0,0,0,.08); }
-  .hero.tiktok .plats { background: rgba(255,255,255,.1); }
-  .hero.tiktok { background: linear-gradient(135deg, #000 0%, #161823 60%, #2a2d3a 100%); box-shadow: inset 4px 0 0 #25f4ee, inset -4px 0 0 #fe2c55; }
-  .hero.meta .plats button.ativo { color: #0b4fb8; } .hero.google .plats button.ativo { color: #8a6500; } .hero.tiktok .plats button.ativo { color: #161823; }
+  /* topo claro, para os três botões se verem nas suas cores */
+  .hero, .hero.meta, .hero.google, .hero.tiktok { background: var(--cartao); color: var(--texto); border: 1px solid var(--linha); box-shadow: none; }
+  .hero p { color: var(--suave) !important; }
+  .hero .chip { background: var(--fundo); border-color: var(--linha); color: var(--texto); }
 </style>
 </head>
 <body>
