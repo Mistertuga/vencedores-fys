@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Vencedores ForYouSong</title>
+<title>Anúncios ForYouSong</title>
 <style>
   :root {
     --fundo: #f6f2ee; --cartao: #ffffff; --linha: #e8dfd6; --linha-fina: #f0e9e2; --texto: #2b2624; --suave: #776c66;
@@ -104,8 +104,8 @@
 </head>
 <body>
 <header class="hero">
-  <h1>🏆 Vencedores ForYouSong</h1>
-  <p>O que está a dar certo no Facebook, pronto para meter no Google e no TikTok Shop. Cada anúncio diz se já pode ser copiado, com o vídeo e o texto prontos a levar.</p>
+  <h1>📣 Anúncios ativos ForYouSong</h1>
+  <p>Os anúncios que temos a correr no Facebook e como está a correr cada um. Quando um passa a vencedor, fica pronto para meter no Google e no TikTok Shop, com o vídeo e o texto prontos a levar.</p>
   <div class="chips" id="chips"></div>
 </header>
 
@@ -119,7 +119,7 @@
 <div class="filtros">
   <div class="grupo" id="f-veredito"></div>
   <div class="grupo" id="f-mercado"></div>
-  <label class="so"><input type="checkbox" id="so-ligados"> Só os que estão ligados</label>
+  <label class="so"><input type="checkbox" id="so-ligados"> Só os que estão a correr</label>
 </div>
 <div class="aviso" id="aviso" hidden></div>
 <main id="lista"></main>
@@ -138,9 +138,9 @@
     vencedor: { emo: "🏆", nome: "Vencedor" }, promissor: { emo: "🌱", nome: "Promissor" },
     teste: { emo: "⏳", nome: "Em teste" }, fraco: { emo: "❌", nome: "Não copiar" }, fora: { emo: "🚫", nome: "Rejeitado" },
   };
-  const est = { v: "todos", m: "todos", so: false };
-  try { Object.assign(est, JSON.parse(localStorage.getItem("venc-fys") || "{}")); } catch (e) {}
-  const guarda = () => { try { localStorage.setItem("venc-fys", JSON.stringify(est)); } catch (e) {} };
+  const est = { v: "todos", m: "todos", so: true };
+  try { Object.assign(est, JSON.parse(localStorage.getItem("anuncios-fys") || "{}")); } catch (e) {}
+  const guarda = () => { try { localStorage.setItem("anuncios-fys", JSON.stringify(est)); } catch (e) {} };
 
   const video = (f) => WEB ? `videos/${encodeURIComponent(f.codigo)}.mp4` : encodeURI(f.video_local);
   const data = (s) => s && s.length >= 10 ? s.slice(8, 10) + "/" + s.slice(5, 7) + " às " + s.slice(11, 16) : s;
@@ -220,7 +220,7 @@
     const venc = D.itens.filter((f) => f.veredito === "vencedor").length;
     const aviso = document.getElementById("aviso");
     aviso.hidden = venc > 0;
-    aviso.textContent = "Ainda não há vencedores: os anúncios estão no ar há pouco tempo. Por agora, vê os promissores e os que têm melhor Hook. Esta página atualiza-se sozinha.";
+    aviso.textContent = "Ainda nenhum anúncio passou a vencedor: estão no ar há pouco tempo. Esta página atualiza-se sozinha a cada 30 minutos.";
     document.getElementById("lista").innerHTML = I.length ? I.map(cartao).join("")
       : `<div class="vazio"><b>Nada aqui por agora</b>${est.v === "vencedor" ? "Quando um anúncio tiver 3 compras com ROAS de 2 ou mais, aparece aqui." : "Experimenta outro filtro."}</div>`;
     document.querySelectorAll("video[data-src]").forEach((v) => io.observe(v));
