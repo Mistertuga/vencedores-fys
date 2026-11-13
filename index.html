@@ -31,6 +31,7 @@
   .passo { background: var(--cartao); border: 1px solid var(--linha); border-radius: 14px; padding: 12px 14px; font-size: 13px; color: var(--suave); }
   .passo b { display: block; font-size: 14.5px; color: var(--texto); margin-bottom: 2px; }
 
+  .rotulo { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--suave); margin-right: -10px; }
   .filtros { margin: 20px var(--margem) 0; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
   .grupo { display: flex; flex-wrap: wrap; gap: 6px; }
   .f { border: 1px solid var(--linha); background: var(--cartao); border-radius: 10px; padding: 7px 12px; font-size: 13.5px; cursor: pointer; }
@@ -75,10 +76,10 @@
   .pequenos { display: grid; grid-template-columns: repeat(4, 1fr); margin: 8px 12px 10px; font-variant-numeric: tabular-nums; }
   .pequenos span { font-size: 10.5px; color: var(--suave); padding: 4px 2px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pequenos b { display: block; font-size: 12.5px; color: var(--texto); font-weight: 600; }
-  .porque { margin: 0 12px 10px; padding: 7px 10px; border-radius: 9px; font-size: 12px; line-height: 1.4; background: var(--cinza-claro); min-height: 3.3em; }
+  .porque { margin: 0 12px 10px; padding: 7px 10px; border-radius: 9px; font-size: 12px; line-height: 1.4; background: var(--cinza-claro); min-height: 48px; box-sizing: border-box; }
   .vencedor .porque { background: #faf3e2; } .promissor .porque { background: var(--verde-claro); }
-  .acoes { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; padding: 0 12px 12px; }
-  .acoes a, .acoes button { display: flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 10px; border-radius: 9px;
+  .acoes { display: grid; grid-template-columns: 1.3fr 1fr 1fr 34px; gap: 5px; padding: 0 12px 12px; }
+  .acoes a, .acoes button { display: flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 8px; border-radius: 9px; min-width: 0;
             border: 1px solid var(--linha); background: var(--cartao); font-size: 12.5px; text-decoration: none; color: var(--texto); cursor: pointer; white-space: nowrap; }
   .acoes a:hover, .acoes button:hover { background: var(--fundo); }
   .acoes .principal { background: var(--ameixa); border-color: var(--ameixa); color: #fff; }
@@ -137,8 +138,8 @@
 <section class="vazio-plat" id="vazio-plat" hidden></section>
 
 <div class="filtros">
-  <div class="grupo" id="f-veredito"></div>
-  <div class="grupo" id="f-mercado"></div>
+  <span class="rotulo">Estado</span><div class="grupo" id="f-veredito"></div>
+  <span class="rotulo">Mercado</span><div class="grupo" id="f-mercado"></div>
   <label class="so"><input type="checkbox" id="so-ligados"> Só os que estão a correr</label>
 </div>
 <div class="aviso" id="aviso" hidden></div>
