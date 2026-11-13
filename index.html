@@ -104,15 +104,25 @@
     main { grid-template-columns: 1fr; }
 
   }
+  .plats { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 18px; background: rgba(0,0,0,.14); border-radius: 12px; flex-wrap: wrap; }
+  .plats button { border: 0; background: none; color: #fff; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 9px; cursor: pointer; opacity: .85; }
+  .plats button:hover { opacity: 1; background: rgba(255,255,255,.12); }
+  .plats button.ativo { background: #fff; color: var(--ameixa-escuro); opacity: 1; }
+  .vazio-plat { margin: 18px var(--margem) 56px; padding: 56px 24px; text-align: center; background: var(--cartao); border: 1px dashed var(--linha); border-radius: 16px; color: var(--suave); }
+  .vazio-plat b { display: block; font-size: 19px; color: var(--texto); margin-bottom: 6px; }
 </style>
 </head>
 <body>
 <header class="hero">
-  <h1>📣 Anúncios ativos ForYouSong</h1>
-  <p>Os anúncios que temos a correr no Facebook e como está a correr cada um. Quando um passa a vencedor, fica pronto para meter no Google e no TikTok Shop, com o vídeo e o texto prontos a levar.</p>
+  <div class="plats" id="plats">
+    <button data-p="meta">📘 Facebook Meta Ads</button><button data-p="google">🔎 Google Ads</button><button data-p="tiktok">🎵 TikTok Ads</button>
+  </div>
+  <h1 id="titulo">📣 Anúncios ativos ForYouSong</h1>
+  <p id="desc">Os anúncios que temos a correr no Facebook e como está a correr cada um. Quando um passa a vencedor, fica pronto para meter no Google e no TikTok Shop, com o vídeo e o texto prontos a levar.</p>
   <div class="chips" id="chips"></div>
 </header>
 
+<section class="vazio-plat" id="vazio-plat" hidden></section>
 <section class="passos">
   <div class="passo"><b>🏆 Vencedor</b>3 ou mais compras e ROAS de 2 ou mais. Copiar já.</div>
   <div class="passo"><b>🌱 Promissor</b>Já vendeu com lucro, falta confirmar. Preparar.</div>
@@ -235,8 +245,30 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(fim, () => velho(t, fim)); else velho(t, fim);
   }
   function velho(t, fim) { const a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); document.execCommand("copy"); a.remove(); fim(); }
+  // três plataformas: só a Meta tem números ligados por agora
+  const PLAT = {
+    meta: { t: "📘 Facebook Meta Ads", d: "Os anúncios que temos a correr no Facebook e Instagram e como está a correr cada um. Quando um passa a vencedor, fica pronto para meter no Google e no TikTok, com o vídeo e o texto prontos a levar." },
+    google: { t: "🔎 Google Ads", d: "Os anúncios que a equipa do Google tem a correr." },
+    tiktok: { t: "🎵 TikTok Ads", d: "Os anúncios que a equipa do TikTok tem a correr." },
+  };
+  let plat = "meta";
+  try { plat = localStorage.getItem("anuncios-fys-plat") || "meta"; } catch (e) {}
+  function mostraPlat() {
+    if (!PLAT[plat]) plat = "meta";
+    document.querySelectorAll("#plats button").forEach((b) => b.classList.toggle("ativo", b.dataset.p === plat));
+    document.getElementById("titulo").textContent = PLAT[plat].t;
+    document.getElementById("desc").textContent = PLAT[plat].d;
+    const meta = plat === "meta";
+    for (const sel of ["#chips", ".passos", ".filtros", "#lista", "#rodape"]) document.querySelector(sel).hidden = !meta;
+    document.getElementById("aviso").hidden = !meta || D.itens.some((f) => f.veredito === "vencedor");
+    const v = document.getElementById("vazio-plat");
+    v.hidden = meta;
+    v.innerHTML = `<b>${PLAT[plat].t}: ainda sem números</b>Esta parte ainda não está ligada à conta. Quando estiver, os anúncios aparecem aqui como os da Meta.`;
+  }
+  document.querySelectorAll("#plats button").forEach((b) => b.onclick = () => { plat = b.dataset.p; try { localStorage.setItem("anuncios-fys-plat", plat); } catch (e) {} mostraPlat(); });
   document.getElementById("so-ligados").onchange = (e) => { est.so = e.target.checked; guarda(); desenha(); };
   desenha();
+  mostraPlat();
 </script>
 </body>
 </html>
