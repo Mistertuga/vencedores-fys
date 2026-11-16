@@ -204,7 +204,7 @@
       <div class="topo"><span class="selo ${f.veredito}">${V.emo} ${V.nome}</span>
         <span class="ligado ${f.ligado ? "on" : ""}">${f.ligado ? "● Ligado" : f.estado === "DISAPPROVED" ? "Rejeitado" : "Em pausa"}</span></div>
       <div class="codigo"><b>${f.bandeira} ${esc(f.codigo)}</b>${esc(f.concorrente || "")} · ${esc(f.conjunto.replace("AdSet - ", ""))}</div>
-      <div class="video"><video playsinline preload="none" data-src="${video(f)}#t=0.1"></video></div>
+      <div class="video"><video playsinline preload="none"${WEB ? ` poster="capas/${encodeURIComponent(f.codigo)}.jpg"` : ""} data-src="${video(f)}#t=0.1"></video></div>
       <div class="grandes">
         <div class="grande"><small>Gasto</small><b>${eur(f.gasto)}</b></div>
         <div class="grande${f.compras ? "" : " zero"}"><small>Compras</small><b>${nf(f.compras)}</b></div>
