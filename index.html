@@ -158,7 +158,7 @@
   const D = window.VENCEDORES_FYS || { itens: [], lido: "-" };
   const WEB = !!window.VENCEDORES_WEB; // no link partilhado os vídeos estão em videos/<código>.mp4
   const nf = (x, c = 0) => x == null ? "-" : new Intl.NumberFormat("pt-PT", { minimumFractionDigits: c, maximumFractionDigits: c }).format(x);
-  const eur = (x, c = 2) => x == null ? "-" : nf(x, c) + " €";
+  const eur = (x, c = 2) => x == null ? "-" : nf(x, c) + " " + (D.moeda || "€");
   const pct = (x) => x == null ? "-" : nf(x, 1) + "%";
   const esc = (s) => String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const VER = {
@@ -181,7 +181,7 @@
       ["💶", eur(g), "gastos"], ["🛒", nf(c), "compras"], ["📈", g ? nf(v / g, 2) : "-", "ROAS"], ["🕒", data(D.lido), ""],
     ].map(([e, n, t]) => `<span class="chip">${e} <b>${n}</b> ${t}</span>`).join("");
     document.getElementById("rodape").innerHTML =
-      `Números do Gestor de Anúncios da Meta (conta Holy Song LLC), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
+      `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
       `Hook = quem viu 3 s a dividir pelas impressões. Hold = quem viu até ao fim (ou 15 s) a dividir por quem viu 3 s. ` +
       `No Google e no TikTok Shop o link vai para a mesma página do país: copia-o pelo botão «Página».`;
   })();
