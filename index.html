@@ -200,7 +200,7 @@
   try { Object.assign(est, JSON.parse(localStorage.getItem("anuncios-fys") || "{}")); } catch (e) {}
   const guarda = () => { try { localStorage.setItem("anuncios-fys", JSON.stringify(est)); } catch (e) {} };
 
-  const video = (f) => WEB ? `videos/${encodeURIComponent(f.codigo)}.mp4` : encodeURI(f.video_local);
+  const video = (f) => (!f.video_local && f.video_url) ? f.video_url : WEB ? `videos/${encodeURIComponent(f.codigo)}.mp4` : encodeURI(f.video_local);
   const data = (s) => s && s.length >= 10 ? s.slice(8, 10) + "/" + s.slice(5, 7) + " às " + s.slice(11, 16) : s;
 
   // totais do topo
