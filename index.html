@@ -207,6 +207,7 @@
       <div class="topo"><span class="selo ${f.veredito}">${V.emo} ${V.nome}</span>
         <span class="ligado ${f.ligado ? "on" : ""}">${f.ligado ? "● Ligado" : f.estado === "DISAPPROVED" ? "Rejeitado" : /PENDING|IN_PROCESS/.test(f.estado || "") ? "Em revisão" : "Em pausa"}</span></div>
       <div class="codigo">${(/WINNER\s*(\d+)/i.exec(f.nome || "") || [])[1] ? `<span class="winner">🏆 WINNER ${(/WINNER\s*(\d+)/i.exec(f.nome))[1]}</span>` : ""}<b>${f.bandeira} ${esc(f.codigo)}</b>${esc(f.concorrente || "")}${(() => { const g = (f.nome || "").split("|").map((s) => s.trim()).find((s) => /^€/.test(s)); return g ? ` <span class="conc-gasto" title="Quanto o concorrente gastou com este vídeo">gastou ${esc(g)}</span>` : ""; })()} · ${esc(f.conjunto.replace("AdSet - ", ""))}</div>
+      ${f.motivo ? `<div class="marca-agua">🚫 Rejeitado pela Meta: <b>${esc(f.motivo.split(":")[0])}</b><br><span style="font-size:12px">${esc(f.motivo.split(":").slice(1).join(":").trim().slice(0,180))}…</span></div>` : ""}
       ${f.marca_agua ? `<div class="marca-agua">⚠️ Marca de água: <b>${esc(f.marca_agua)}</b></div>` : ""}
       <div class="video"><video playsinline preload="none"${WEB ? ` poster="capas/${encodeURIComponent(f.codigo)}.jpg"` : ""} data-src="${video(f)}#t=0.1"></video></div>
       <div class="grandes">
