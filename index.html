@@ -64,6 +64,7 @@
 
   /* cartão em coluna: 5 por fila no computador */
   .video { padding: 0 12px; }
+  .winner { display: inline-block; margin-right: 8px; padding: 2px 9px; border-radius: 7px; background: #2b2723; color: #fff; font-weight: 800; font-size: 12.5px; letter-spacing: .3px; vertical-align: 1px; }
   .marca-agua { margin: 0 12px 8px; padding: 7px 10px; border-radius: 8px; background: #fdecea; color: #a12a1f; border: 1px solid #f3c2bc; font-size: 12.5px; }
   .video video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; background: #2a2226; }
   .grandes { display: grid; grid-template-columns: repeat(3, 1fr); margin: 10px 12px 0; border: 1px solid var(--linha-fina); border-radius: 10px; overflow: hidden; }
@@ -204,7 +205,7 @@
     return `<article class="cartao ${f.veredito}">
       <div class="topo"><span class="selo ${f.veredito}">${V.emo} ${V.nome}</span>
         <span class="ligado ${f.ligado ? "on" : ""}">${f.ligado ? "● Ligado" : f.estado === "DISAPPROVED" ? "Rejeitado" : "Em pausa"}</span></div>
-      <div class="codigo"><b>${f.bandeira} ${esc(f.codigo)}</b>${esc(f.concorrente || "")} · ${esc(f.conjunto.replace("AdSet - ", ""))}</div>
+      <div class="codigo">${(/WINNER\s*(\d+)/i.exec(f.nome || "") || [])[1] ? `<span class="winner">🏆 WINNER ${(/WINNER\s*(\d+)/i.exec(f.nome))[1]}</span>` : ""}<b>${f.bandeira} ${esc(f.codigo)}</b>${esc(f.concorrente || "")} · ${esc(f.conjunto.replace("AdSet - ", ""))}</div>
       ${f.marca_agua ? `<div class="marca-agua">⚠️ Marca de água: <b>${esc(f.marca_agua)}</b></div>` : ""}
       <div class="video"><video playsinline preload="none"${WEB ? ` poster="capas/${encodeURIComponent(f.codigo)}.jpg"` : ""} data-src="${video(f)}#t=0.1"></video></div>
       <div class="grandes">
