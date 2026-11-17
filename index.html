@@ -65,6 +65,17 @@
   /* cartão em coluna: 5 por fila no computador */
   .video { padding: 0 12px; }
   .conc-gasto { font-size: 12px; font-weight: 700; color: #8a3a12; background: #fdf0e6; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+  .campanhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; margin: 18px var(--margem) 0; }
+  .campanhas:empty { display: none; }
+  .camp { background: #fff; border: 1px solid #e8e1d6; border-radius: 14px; padding: 14px 16px; }
+  .camp h4 { margin: 0 0 8px; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+  .camp h4 small { font-weight: 600; color: #2e7d4f; white-space: nowrap; }
+  .camp h4 small.off { color: #8a8178; }
+  .camp .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center; }
+  .camp .nums small { display: block; font-size: 11px; color: #8a8178; }
+  .camp .nums b { font-size: 15px; }
+  .camp .barra { height: 5px; background: #f1ebe2; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .camp .barra i { display: block; height: 100%; background: #e8612b; }
   .winner { display: inline-block; margin-right: 8px; padding: 2px 9px; border-radius: 7px; background: #2b2723; color: #fff; font-weight: 800; font-size: 12.5px; letter-spacing: .3px; vertical-align: 1px; }
   .marca-agua { margin: 0 12px 8px; padding: 7px 10px; border-radius: 8px; background: #fdecea; color: #a12a1f; border: 1px solid #f3c2bc; font-size: 12.5px; }
   .video video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; background: #2a2226; }
@@ -146,6 +157,7 @@
 
 <section class="vazio-plat" id="vazio-plat" hidden></section>
 
+<section class="campanhas" id="campanhas"></section>
 <div class="filtros">
   <span class="rotulo">Estado</span><div class="grupo" id="f-veredito"></div>
   <span class="rotulo">Mercado</span><div class="grupo" id="f-mercado"></div>
@@ -159,6 +171,22 @@
 <script>document.write('<script src="dados-vencedores-fys.js?' + Date.now() + '"><\/script>');</script>
 <script>
   const D = window.VENCEDORES_FYS || { itens: [], lido: "-" };
+  (function campanhas() {
+    const el = document.getElementById("campanhas");
+    const C = D.campanhas || [];
+    if (!el || !C.length) return;
+    const m = (v) => v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
+    el.innerHTML = C.map((c) => `<div class="camp">
+      <h4><span>${c.nome.replace(/</g, "&lt;")}</span><small class="${c.ligada ? "" : "off"}">${c.ligada ? "● Ligada" : "Desligada"}</small></h4>
+      <div class="nums">
+        <div><small>Gasto</small><b>${m(c.gasto)}</b></div>
+        <div><small>Orçamento/dia</small><b>${m(c.orcamento)}</b></div>
+        <div><small>Impressões</small><b>${c.impressoes.toLocaleString("pt-PT")}</b></div>
+        <div><small>Compras</small><b>${c.compras}</b></div>
+      </div>
+      <div class="barra" title="Gasto em relação ao orçamento de um dia"><i style="width:${Math.min(100, c.orcamento ? (c.gasto / c.orcamento) * 100 : 0)}%"></i></div>
+    </div>`).join("");
+  })();
   const WEB = !!window.VENCEDORES_WEB; // no link partilhado os vídeos estão em videos/<código>.mp4
   const nf = (x, c = 0) => x == null ? "-" : new Intl.NumberFormat("pt-PT", { minimumFractionDigits: c, maximumFractionDigits: c }).format(x);
   const eur = (x, c = 2) => x == null ? "-" : nf(x, c) + " " + (D.moeda || "€");
