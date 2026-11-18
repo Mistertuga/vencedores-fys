@@ -80,7 +80,8 @@
   .camp .gasto span { font-size: 12.5px; color: #8a8178; }
   .camp .barra { height: 4px; background: #f1ebe2; border-radius: 2px; margin: 8px 0 10px; overflow: hidden; }
   .camp .barra i { display: block; height: 100%; background: #2b2723; border-radius: 2px; }
-  .camp .rodape { display: flex; gap: 14px; font-size: 12.5px; color: #8a8178; }
+  .camp .rodape { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; font-size: 12.5px; color: #8a8178; }
+  .camp .rodape span { white-space: nowrap; }
   .camp .rodape b { color: #2b2723; font-weight: 600; }
   .camp .rodape b.bom { color: #2e7d4f; }
   .winner { display: inline-block; margin-right: 8px; padding: 2px 9px; border-radius: 7px; background: #2b2723; color: #fff; font-weight: 800; font-size: 12.5px; letter-spacing: .3px; vertical-align: 1px; }
@@ -193,15 +194,14 @@
     const m = (v) => v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
     const PAISES = { IT: ["🇮🇹", "Itália"], DE: ["🇩🇪", "Alemanha"], GB: ["🇬🇧", "Reino Unido"], FR: ["🇫🇷", "França"], ES: ["🇪🇸", "Espanha"], US: ["🇺🇸", "Estados Unidos"], PT: ["🇵🇹", "Portugal"] };
     el.innerHTML = C.map((c) => {
-      const cod = (/^\[(\w+)\]/.exec(c.nome) || [])[1] || "";
+      const cod = (/\[([A-Z]{2})\]/.exec(c.nome) || [])[1] || "";
       const [band, pais] = PAISES[cod] || ["", c.nome];
-      const resto = c.nome.replace(/^\[\w+\]\s*-\s*/, "").split(/\s*[-|]\s*/).map((x) => x.replace(/[\[\]]/g, "")).filter(Boolean);
+      const resto = c.nome.replace(/^.*?\[[A-Z]{2}\]\s*-\s*/, "").split(/\s*[-|]\s*/).map((x) => x.replace(/[\[\]]/g, "")).filter(Boolean);
       const cpm = c.impressoes ? (c.gasto / c.impressoes) * 1000 : 0;
       return `<div class="camp" data-camp="${cod}" title="Mostrar só os anúncios deste país">
         <div class="cab"><span>${band}</span><b>${pais}</b><small class="${c.ligada ? "" : "off"}">${c.ligada ? "● Ligada" : "Desligada"}</small></div>
         <div class="tipo">${resto.map((x) => x.replace(/</g, "&lt;")).join(" · ")}</div>
         <div class="gasto"><b>${m(c.gasto)}</b><span>gasto · ${m(c.orcamento)}/dia</span></div>
-        <div class="barra" title="Gasto em relação ao orçamento de um dia"><i style="width:${Math.min(100, c.orcamento ? (c.gasto / c.orcamento) * 100 : 0)}%"></i></div>
         <div class="rodape"><span><b class="${c.compras ? "bom" : ""}">${c.compras}</b> ${c.compras === 1 ? "compra" : "compras"}</span><span><b>${c.impressoes.toLocaleString("pt-PT")}</b> impressões</span><span>CPM <b>${cpm ? m(cpm) : "-"}</b></span></div>
       </div>`;
     }).join("");
