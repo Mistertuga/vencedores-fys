@@ -159,6 +159,9 @@
   .kpi.heroi { grid-row: span 2; padding-right: 28px; border-right: 1px solid var(--linha); }
   .kpi.heroi b { font-size: 48px; line-height: 1.05; letter-spacing: -1px; }
   .kpi.mau i { color: #b23b2e; } .kpi.bom i { color: #2e7d4f; }
+  /* o filtro de país do resumo: os números do topo contam só o país escolhido */
+  .kfiltro { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+  .kfiltro .f { padding: 5px 11px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -228,23 +231,36 @@
   const video = (f) => (!f.video_local && f.video_url) ? f.video_url : WEB ? `videos/${encodeURIComponent(f.codigo)}.mp4` : encodeURI(f.video_local);
   const data = (s) => s && s.length >= 10 ? s.slice(8, 10) + "/" + s.slice(5, 7) + " às " + s.slice(11, 16) : s;
 
-  // totais do topo
-  (() => {
-    const I = D.itens, g = I.reduce((a, f) => a + f.gasto, 0), c = I.reduce((a, f) => a + f.compras, 0), v = I.reduce((a, f) => a + f.valor, 0);
+  // Resumo do topo (18/11, pedido do Edu: «estes valores estão a contar com outros»): conta só o país escolhido,
+  // no filtro do próprio resumo, no «Mercado» ou nos cartões das campanhas (os três mudam juntos).
+  const codCamp = (c) => (/\[([A-Z]{2})\]/.exec(c.nome) || [])[1] || "";
+  const soma = (L, k) => L.reduce((a, x) => a + (x[k] || 0), 0);
+  function resumo() {
+    const doPais = (cod) => est.m === "todos" || cod === est.m;
+    const I = D.itens.filter((f) => doPais(f.mercado));
+    // O dinheiro vem das campanhas, como no Gestor de Anúncios: contam também os anúncios que já saíram da lista.
+    const C = (D.campanhas || []).filter((c) => doPais(codCamp(c)));
+    const g = C.length ? soma(C, "gasto") : soma(I, "gasto");
+    const c = C.length ? soma(C, "compras") : soma(I, "compras");
+    const v = C.length ? soma(C, "vendas") : soma(I, "valor");
     const venc = I.filter((f) => f.veredito === "vencedor").length;
     const lig = I.filter((f) => f.ligado).length, roas = g ? v / g : 0;
-    document.getElementById("chips").innerHTML = [
+    const ms = [...new Set(D.itens.map((f) => f.mercado))];
+    const filtro = `<div class="kfiltro">` + [["todos", "🌍 Todos"], ...ms.map((m) => { const f = D.itens.find((x) => x.mercado === m); return [m, f.bandeira + " " + f.pais]; })]
+      .map(([k, n]) => `<button class="f ${est.m === k ? "ativo" : ""}" data-km="${k}">${n}</button>`).join("") + `</div>`;
+    document.getElementById("chips").innerHTML = filtro + [
       ["Gasto", eur(g), `${lig} de ${I.length} ligados · lido ${data(D.lido)}`, "heroi"],
       ["ROAS", g ? nf(roas, 2) : "-", g ? (roas >= 2 ? "▲ acima de 2" : roas >= 1 ? "a pagar-se" : "▼ abaixo de 1") : "", !g ? "" : roas >= 2 ? "bom" : roas < 1 ? "mau" : ""],
       ["Compras", nf(c), c ? `${eur(g / c)} cada` : "nenhuma ainda", ""],
       ["Valor das vendas", eur(v), "registado pela Meta", ""],
       ["Vencedores", venc, "3 compras e ROAS 2+", venc ? "bom" : ""],
     ].map(([t, n, sub, cl]) => `<div class="kpi ${cl}"><small>${t}</small><b>${n}</b><i>${sub}</i></div>`).join("");
-    document.getElementById("rodape").innerHTML =
-      `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
-      `Hook = quem viu 3 s a dividir pelas impressões. Hold = quem viu até ao fim (ou 15 s) a dividir por quem viu 3 s. ` +
-      `No Google e no TikTok Shop o link vai para a mesma página do país: copia-o pelo botão «Página».`;
-  })();
+    document.querySelectorAll("[data-km]").forEach((b) => b.onclick = () => { est.m = b.dataset.km; guarda(); desenha(); marcaCamp(); });
+  }
+  document.getElementById("rodape").innerHTML =
+    `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
+    `Hook = quem viu 3 s a dividir pelas impressões. Hold = quem viu até ao fim (ou 15 s) a dividir por quem viu 3 s. ` +
+    `No Google e no TikTok Shop o link vai para a mesma página do país: copia-o pelo botão «Página».`;
 
   function filtros() {
     const I = D.itens.filter((f) => !est.so || f.ligado);
@@ -299,6 +315,9 @@
 
   function desenha() {
     document.getElementById("so-ligados").checked = est.so;
+    // Um país guardado de outra vez que já não tem anúncios nem campanha volta a «Todos».
+    if (est.m !== "todos" && !D.itens.some((f) => f.mercado === est.m) && !(D.campanhas || []).some((c) => codCamp(c) === est.m)) est.m = "todos";
+    resumo();
     filtros();
     const I = D.itens.filter((f) => (!est.so || f.ligado) && (est.m === "todos" || f.mercado === est.m) &&
       (est.v === "todos" || f.veredito === est.v || (est.v === "fraco" && f.veredito === "fora")));
