@@ -143,13 +143,14 @@
   .hero .chips[hidden] { display: none !important; }
   @media (max-width: 1100px) { .hero { grid-template-columns: 1fr; } .hero .chips { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
   .hero .chip { background: var(--fundo); border-color: var(--linha); color: var(--texto); }
-  .hero .chips:has(.kpi) { display: grid; grid-template-columns: repeat(3, auto); gap: 0; background: var(--fundo); border-radius: 14px; padding: 4px 0; }
-  .hero .chips .kpi { display: flex; flex-direction: column; gap: 1px; padding: 9px 20px; border-left: 1px solid var(--linha); }
-  .hero .chips .kpi:nth-child(3n+1) { border-left: 0; }
-  .kpi small { font-size: 12px; color: #8a8178; }
-  .kpi b { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
-  .kpi i { display: none; }
-  .kpi.bom b { color: #2e7d4f; } .kpi.mau b { color: #b23b2e; }
+  .hero .chips:has(.kpi) { display: grid; grid-template-columns: auto repeat(2, minmax(110px, auto)); gap: 18px 28px; align-items: start; }
+  .kpi { display: flex; flex-direction: column; gap: 2px; }
+  .kpi small { font-size: 13px; color: #8a8178; }
+  .kpi b { font-size: 22px; font-weight: 600; letter-spacing: -.2px; }
+  .kpi i { font-style: normal; font-size: 12px; color: #8a8178; }
+  .kpi.heroi { grid-row: span 2; padding-right: 28px; border-right: 1px solid var(--linha); }
+  .kpi.heroi b { font-size: 48px; line-height: 1.05; letter-spacing: -1px; }
+  .kpi.mau i { color: #b23b2e; } .kpi.bom i { color: #2e7d4f; }
 </style>
 </head>
 <body>
@@ -216,12 +217,11 @@
     const venc = I.filter((f) => f.veredito === "vencedor").length;
     const lig = I.filter((f) => f.ligado).length, roas = g ? v / g : 0;
     document.getElementById("chips").innerHTML = [
-      ["Gasto", eur(g), `${lig} de ${I.length} ligados`, ""],
-      ["Compras", nf(c), c ? `${eur(g / c)} por compra` : "nenhuma ainda", c ? "" : "mau"],
-      ["ROAS", g ? nf(roas, 2) : "-", g ? (roas >= 2 ? "acima de 2, bom" : roas >= 1 ? "a pagar-se, abaixo de 2" : "abaixo de 1, a perder") : "", !g ? "" : roas >= 2 ? "bom" : roas < 1 ? "mau" : ""],
+      ["Gasto", eur(g), `${lig} de ${I.length} ligados · lido ${data(D.lido)}`, "heroi"],
+      ["ROAS", g ? nf(roas, 2) : "-", g ? (roas >= 2 ? "▲ acima de 2" : roas >= 1 ? "a pagar-se" : "▼ abaixo de 1") : "", !g ? "" : roas >= 2 ? "bom" : roas < 1 ? "mau" : ""],
+      ["Compras", nf(c), c ? `${eur(g / c)} cada` : "nenhuma ainda", ""],
+      ["Valor das vendas", eur(v), "registado pela Meta", ""],
       ["Vencedores", venc, "3 compras e ROAS 2+", venc ? "bom" : ""],
-      ["Valor das vendas", eur(v), "o que a Meta registou", ""],
-      ["Lido", data(D.lido), "atualiza de 30 em 30 min", ""],
     ].map(([t, n, sub, cl]) => `<div class="kpi ${cl}"><small>${t}</small><b>${n}</b><i>${sub}</i></div>`).join("");
     document.getElementById("rodape").innerHTML =
       `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
