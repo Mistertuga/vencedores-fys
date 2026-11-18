@@ -51,7 +51,7 @@
             box-shadow: 0 1px 2px rgba(60,40,50,.04), 0 10px 26px -18px rgba(60,40,50,.18); }
   .cartao.vencedor { border: 2px solid #c9a75a; }
   .topo { display: flex; align-items: center; gap: 8px; padding: 10px 12px 4px; }
-  .codigo { padding: 0 12px 8px; font-size: 12px; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .codigo { padding: 0 12px 8px; font-size: 12px; color: var(--suave); line-height: 1.8; }
   .codigo b { color: var(--texto); font-size: 14px; margin-right: 4px; }
   .selo { font-size: 12px; font-weight: 650; padding: 3px 8px; border-radius: 8px; white-space: nowrap; }
   .selo.vencedor { background: #f6ecd2; color: #7a5a17; } .selo.promissor { background: var(--verde-claro); color: var(--verde); }
@@ -67,15 +67,22 @@
   .conc-gasto { font-size: 12px; font-weight: 700; color: #8a3a12; background: #fdf0e6; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
   .campanhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; margin: 18px var(--margem) 0; }
   .campanhas:empty { display: none; }
-  .camp { background: #fff; border: 1px solid #e8e1d6; border-radius: 14px; padding: 14px 16px; }
-  .camp h4 { margin: 0 0 8px; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
-  .camp h4 small { font-weight: 600; color: #2e7d4f; white-space: nowrap; }
-  .camp h4 small.off { color: #8a8178; }
-  .camp .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center; }
-  .camp .nums small { display: block; font-size: 11px; color: #8a8178; }
-  .camp .nums b { font-size: 15px; }
-  .camp .barra { height: 5px; background: #f1ebe2; border-radius: 3px; margin-top: 10px; overflow: hidden; }
-  .camp .barra i { display: block; height: 100%; background: #e8612b; }
+  .camp { background: #fff; border: 1px solid #e8e1d6; border-radius: 14px; padding: 14px 16px 12px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .camp:hover { border-color: #d6cbbb; }
+  .camp.ativa { border-color: #2b2723; box-shadow: 0 0 0 1px #2b2723; }
+  .camp .cab { display: flex; align-items: center; gap: 8px; }
+  .camp .cab b { font-size: 15px; }
+  .camp .cab small { margin-left: auto; font-size: 12px; font-weight: 600; color: #2e7d4f; white-space: nowrap; }
+  .camp .cab small.off { color: #8a8178; }
+  .camp .tipo { font-size: 12px; color: #8a8178; margin: 1px 0 10px; }
+  .camp .gasto { display: flex; align-items: baseline; gap: 6px; }
+  .camp .gasto b { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+  .camp .gasto span { font-size: 12.5px; color: #8a8178; }
+  .camp .barra { height: 4px; background: #f1ebe2; border-radius: 2px; margin: 8px 0 10px; overflow: hidden; }
+  .camp .barra i { display: block; height: 100%; background: #2b2723; border-radius: 2px; }
+  .camp .rodape { display: flex; gap: 14px; font-size: 12.5px; color: #8a8178; }
+  .camp .rodape b { color: #2b2723; font-weight: 600; }
+  .camp .rodape b.bom { color: #2e7d4f; }
   .winner { display: inline-block; margin-right: 8px; padding: 2px 9px; border-radius: 7px; background: #2b2723; color: #fff; font-weight: 800; font-size: 12.5px; letter-spacing: .3px; vertical-align: 1px; }
   .marca-agua { margin: 0 12px 8px; padding: 7px 10px; border-radius: 8px; background: #fdecea; color: #a12a1f; border: 1px solid #f3c2bc; font-size: 12.5px; }
   .video video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; background: #2a2226; }
@@ -184,16 +191,26 @@
     const C = D.campanhas || [];
     if (!el || !C.length) return;
     const m = (v) => v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
-    el.innerHTML = C.map((c) => `<div class="camp">
-      <h4><span>${c.nome.replace(/</g, "&lt;")}</span><small class="${c.ligada ? "" : "off"}">${c.ligada ? "● Ligada" : "Desligada"}</small></h4>
-      <div class="nums">
-        <div><small>Gasto</small><b>${m(c.gasto)}</b></div>
-        <div><small>Orçamento/dia</small><b>${m(c.orcamento)}</b></div>
-        <div><small>Impressões</small><b>${c.impressoes.toLocaleString("pt-PT")}</b></div>
-        <div><small>Compras</small><b>${c.compras}</b></div>
-      </div>
-      <div class="barra" title="Gasto em relação ao orçamento de um dia"><i style="width:${Math.min(100, c.orcamento ? (c.gasto / c.orcamento) * 100 : 0)}%"></i></div>
-    </div>`).join("");
+    const PAISES = { IT: ["🇮🇹", "Itália"], DE: ["🇩🇪", "Alemanha"], GB: ["🇬🇧", "Reino Unido"], FR: ["🇫🇷", "França"], ES: ["🇪🇸", "Espanha"], US: ["🇺🇸", "Estados Unidos"], PT: ["🇵🇹", "Portugal"] };
+    el.innerHTML = C.map((c) => {
+      const cod = (/^\[(\w+)\]/.exec(c.nome) || [])[1] || "";
+      const [band, pais] = PAISES[cod] || ["", c.nome];
+      const resto = c.nome.replace(/^\[\w+\]\s*-\s*/, "").split(/\s*[-|]\s*/).map((x) => x.replace(/[\[\]]/g, "")).filter(Boolean);
+      const cpm = c.impressoes ? (c.gasto / c.impressoes) * 1000 : 0;
+      return `<div class="camp" data-camp="${cod}" title="Mostrar só os anúncios deste país">
+        <div class="cab"><span>${band}</span><b>${pais}</b><small class="${c.ligada ? "" : "off"}">${c.ligada ? "● Ligada" : "Desligada"}</small></div>
+        <div class="tipo">${resto.map((x) => x.replace(/</g, "&lt;")).join(" · ")}</div>
+        <div class="gasto"><b>${m(c.gasto)}</b><span>gasto · ${m(c.orcamento)}/dia</span></div>
+        <div class="barra" title="Gasto em relação ao orçamento de um dia"><i style="width:${Math.min(100, c.orcamento ? (c.gasto / c.orcamento) * 100 : 0)}%"></i></div>
+        <div class="rodape"><span><b class="${c.compras ? "bom" : ""}">${c.compras}</b> ${c.compras === 1 ? "compra" : "compras"}</span><span><b>${c.impressoes.toLocaleString("pt-PT")}</b> impressões</span><span>CPM <b>${cpm ? m(cpm) : "-"}</b></span></div>
+      </div>`;
+    }).join("");
+    el.addEventListener("click", (e) => {
+      const c = e.target.closest("[data-camp]");
+      if (!c || !c.dataset.camp) return;
+      est.m = est.m === c.dataset.camp ? "todos" : c.dataset.camp;
+      guarda(); desenha(); marcaCamp();
+    });
   })();
   const WEB = !!window.VENCEDORES_WEB; // no link partilhado os vídeos estão em videos/<código>.mp4
   const nf = (x, c = 0) => x == null ? "-" : new Intl.NumberFormat("pt-PT", { minimumFractionDigits: c, maximumFractionDigits: c }).format(x);
@@ -238,7 +255,7 @@
     document.getElementById("f-mercado").innerHTML = [["todos", "🌍 Todos"], ...ms.map((m) => { const f = D.itens.find((x) => x.mercado === m); return [m, f.bandeira + " " + f.pais]; })]
       .map(([k, n]) => `<button class="f ${est.m === k ? "ativo" : ""}" data-m="${k}">${n}<small>${k === "todos" ? I.length : conta((f) => f.mercado === k)}</small></button>`).join("");
     document.querySelectorAll("[data-v]").forEach((b) => b.onclick = () => { est.v = b.dataset.v; guarda(); desenha(); });
-    document.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => { est.m = b.dataset.m; guarda(); desenha(); });
+    document.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => { est.m = b.dataset.m; guarda(); desenha(); marcaCamp(); });
   }
 
   function cartao(f) {
@@ -333,6 +350,8 @@
   document.getElementById("so-ligados").onchange = (e) => { est.so = e.target.checked; guarda(); desenha(); };
   desenha();
   mostraPlat();
+  function marcaCamp() { document.querySelectorAll("[data-camp]").forEach((c) => c.classList.toggle("ativa", c.dataset.camp === est.m)); }
+  marcaCamp();
 </script>
 </body>
 </html>
