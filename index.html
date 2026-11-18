@@ -143,6 +143,11 @@
   .hero .chips[hidden] { display: none !important; }
   @media (max-width: 1100px) { .hero { grid-template-columns: 1fr; } .hero .chips { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
   .hero .chip { background: var(--fundo); border-color: var(--linha); color: var(--texto); }
+  .hero .chips .kpi { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px 13px; min-width: 150px; background: #fff; border: 1px solid var(--linha); border-radius: 14px; box-shadow: 0 1px 2px rgba(43,39,35,.05); }
+  .kpi small { font-size: 11px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: #8a8178; }
+  .kpi b { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; line-height: 1.15; }
+  .kpi i { font-style: normal; font-size: 11.5px; color: #8a8178; }
+  .kpi.bom b { color: #2e7d4f; } .kpi.mau b { color: #b23b2e; } .kpi.mau i { color: #b23b2e; }
 </style>
 </head>
 <body>
@@ -207,10 +212,15 @@
   (() => {
     const I = D.itens, g = I.reduce((a, f) => a + f.gasto, 0), c = I.reduce((a, f) => a + f.compras, 0), v = I.reduce((a, f) => a + f.valor, 0);
     const venc = I.filter((f) => f.veredito === "vencedor").length;
+    const lig = I.filter((f) => f.ligado).length, roas = g ? v / g : 0;
     document.getElementById("chips").innerHTML = [
-      ["🏆", venc, venc === 1 ? "vencedor" : "vencedores"], ["🟢", I.filter((f) => f.ligado).length, "ligados"],
-      ["💶", eur(g), "gastos"], ["🛒", nf(c), "compras"], ["📈", g ? nf(v / g, 2) : "-", "ROAS"], ["🕒", data(D.lido), ""],
-    ].map(([e, n, t]) => `<span class="chip">${e} <b>${n}</b> ${t}</span>`).join("");
+      ["Gasto", eur(g), `${lig} de ${I.length} ligados`, ""],
+      ["Compras", nf(c), c ? `${eur(g / c)} por compra` : "nenhuma ainda", c ? "" : "mau"],
+      ["ROAS", g ? nf(roas, 2) : "-", g ? (roas >= 2 ? "acima de 2, bom" : roas >= 1 ? "a pagar-se, abaixo de 2" : "abaixo de 1, a perder") : "", !g ? "" : roas >= 2 ? "bom" : roas < 1 ? "mau" : ""],
+      ["Vencedores", venc, "3 compras e ROAS 2+", venc ? "bom" : ""],
+      ["Valor das vendas", eur(v), "o que a Meta registou", ""],
+      ["Lido", data(D.lido), "atualiza de 30 em 30 min", ""],
+    ].map(([t, n, sub, cl]) => `<div class="kpi ${cl}"><small>${t}</small><b>${n}</b><i>${sub}</i></div>`).join("");
     document.getElementById("rodape").innerHTML =
       `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
       `Hook = quem viu 3 s a dividir pelas impressões. Hold = quem viu até ao fim (ou 15 s) a dividir por quem viu 3 s. ` +
