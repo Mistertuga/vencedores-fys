@@ -162,10 +162,20 @@
   /* o filtro de país do resumo: os números do topo contam só o país escolhido */
   .kfiltro { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
   .kfiltro .f { padding: 5px 11px; font-size: 13px; }
+  /* filtros de datas do resumo (18/11): o mesmo aspeto dos botões de país; no telemóvel partem em duas linhas */
+  .kfiltros { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; }
+  .kintervalo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 13px; color: var(--suave); }
+  .kintervalo label { display: flex; align-items: center; gap: 6px; }
+  .kintervalo input { font: inherit; font-size: 13px; color: var(--texto); background: var(--cartao); border: 1px solid var(--linha);
+                      border-radius: 10px; padding: 4px 9px; min-height: 31px; }
+  .knums { display: contents; }
+  /* a linha do período não alarga o resumo: ocupa só a largura que os números já têm */
+  .kperiodo { grid-column: 1 / -1; width: 0; min-width: 100%; margin-top: -6px; font-size: 12.5px; color: var(--suave); text-wrap: pretty; }
   /* no telemóvel o resumo saía para fora do ecrã: o gasto fica numa linha e os outros 4 números em 2 colunas */
   @media (max-width: 640px) {
     .hero .chips:has(.kpi) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
     .kpi.heroi { grid-column: 1 / -1; grid-row: auto; padding: 0 0 14px; border-right: 0; border-bottom: 1px solid var(--linha); }
+    .kintervalo input { font-size: 16px; } /* abaixo de 16 px o iPhone faz zoom ao tocar */
   }
 </style>
 </head>
@@ -195,10 +205,10 @@
 <script>document.write('<script src="dados-vencedores-fys.js?' + Date.now() + '"><\/script>');</script>
 <script>
   const D = window.VENCEDORES_FYS || { itens: [], lido: "-" };
-  (function campanhas() {
+  // Cartões das campanhas por país: os números seguem o período escolhido no resumo do topo
+  function desenhaCampanhas(C) {
     const el = document.getElementById("campanhas");
-    const C = D.campanhas || [];
-    if (!el || !C.length) return;
+    if (!el) return;
     const m = (v) => v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
     const PAISES = { IT: ["🇮🇹", "Itália"], DE: ["🇩🇪", "Alemanha"], GB: ["🇬🇧", "Reino Unido"], FR: ["🇫🇷", "França"], ES: ["🇪🇸", "Espanha"], US: ["🇺🇸", "Estados Unidos"], PT: ["🇵🇹", "Portugal"] };
     el.innerHTML = C.map((c) => {
@@ -213,13 +223,13 @@
         <div class="rodape"><span><b class="${c.compras ? "bom" : ""}">${c.compras}</b> ${c.compras === 1 ? "compra" : "compras"}</span><span><b>${c.impressoes.toLocaleString("pt-PT")}</b> impressões</span><span>CPM <b>${cpm ? m(cpm) : "-"}</b></span></div>
       </div>`;
     }).join("");
-    el.addEventListener("click", (e) => {
-      const c = e.target.closest("[data-camp]");
-      if (!c || !c.dataset.camp) return;
-      est.m = est.m === c.dataset.camp ? "todos" : c.dataset.camp;
-      guarda(); desenha(); marcaCamp();
-    });
-  })();
+  }
+  document.getElementById("campanhas").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-camp]");
+    if (!c || !c.dataset.camp) return;
+    est.m = est.m === c.dataset.camp ? "todos" : c.dataset.camp;
+    guarda(); desenha(); marcaCamp();
+  });
   const WEB = !!window.VENCEDORES_WEB; // no link partilhado os vídeos estão em videos/<código>.mp4
   const nf = (x, c = 0) => x == null ? "-" : new Intl.NumberFormat("pt-PT", { minimumFractionDigits: c, maximumFractionDigits: c }).format(x);
   const eur = (x, c = 2) => x == null ? "-" : nf(x, c) + " " + (D.moeda || "€");
@@ -229,9 +239,111 @@
     vencedor: { emo: "🏆", nome: "Vencedor" }, promissor: { emo: "🌱", nome: "Promissor" },
     teste: { emo: "⏳", nome: "Em teste" }, fraco: { emo: "❌", nome: "Não copiar" }, fora: { emo: "🚫", nome: "Rejeitado" },
   };
-  const est = { v: "todos", m: "todos", so: true };
+  const est = { v: "todos", m: "todos", so: true, p: "tudo", de: "", ate: "" };
   try { Object.assign(est, JSON.parse(localStorage.getItem("anuncios-fys") || "{}")); } catch (e) {}
   const guarda = () => { try { localStorage.setItem("anuncios-fys", JSON.stringify(est)); } catch (e) {} };
+
+  // Filtros de datas (18/11, pedido do Edu: «aqui eu quero que metas filtros de datas»). Cada anúncio e cada campanha
+  // trazem os números dia a dia, no dia da conta como a Meta os dá (igual ao Gestor de Anúncios, sem mudar fuso nem moeda).
+  // «Desde o início» usa os totais da Meta, tal como antes. Sem números por dia (ficheiro antigo) os filtros escondem-se.
+  const CFG_DATAS = {
+    ultimos_com_hoje: false, // «7 dias» e «30 dias» como no Gestor de Anúncios: os dias completos antes de hoje
+    padrao: "tudo",
+    sem_dados: "Sem gasto nem impressões neste período.",
+  };
+  const PERIODOS = [["hoje", "Hoje"], ["ontem", "Ontem"], ["7", "7 dias"], ["30", "30 dias"], ["mes", "Este mês"], ["tudo", "Desde o início"], ["datas", "Datas…"]];
+  const NOME_PERIODO = { hoje: "Hoje", ontem: "Ontem", 7: CFG_DATAS.ultimos_com_hoje ? "Últimos 7 dias" : "Últimos 7 dias, sem hoje",
+    30: CFG_DATAS.ultimos_com_hoje ? "Últimos 30 dias" : "Últimos 30 dias, sem hoje", mes: "Este mês", datas: "" };
+  const COM_DIAS = [...D.itens, ...(D.campanhas || [])];
+  const TEM_DIAS = !!D.hoje && COM_DIAS.some((x) => x.dias);
+  const DIAS_COM_DADOS = [...new Set(COM_DIAS.flatMap((x) => Object.keys(x.dias || {})))].sort();
+  const PRIMEIRO = DIAS_COM_DADOS[0] || D.hoje || "", ULTIMO = DIAS_COM_DADOS[DIAS_COM_DADOS.length - 1] || D.hoje || "";
+  const IX = Object.fromEntries((D.dia_campos || ["gasto", "compras", "valor", "impressoes", "cliques", "carrinhos", "visitas", "vistas3s", "thruplays"]).map((k, i) => [k, i]));
+  if (!PERIODOS.some(([k]) => k === est.p)) est.p = CFG_DATAS.padrao;
+  const diaMais = (s, n) => { const d = new Date(s + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const dpt = (s) => s ? s.slice(8, 10) + "/" + s.slice(5, 7) + "/" + s.slice(0, 4) : "";
+  const prende = (s) => s < PRIMEIRO ? PRIMEIRO : s > ULTIMO ? ULTIMO : s;
+  // [de, até] em «AAAA-MM-DD» (os dois contam), ou null para «Desde o início»
+  function intervalo() {
+    if (!TEM_DIAS) return null;
+    const h = D.hoje, fim = CFG_DATAS.ultimos_com_hoje ? h : diaMais(h, -1), ultimos = (n) => [diaMais(fim, 1 - n), fim];
+    switch (est.p) {
+      case "hoje": return [h, h];
+      case "ontem": return [diaMais(h, -1), diaMais(h, -1)];
+      case "7": return ultimos(7);
+      case "30": return ultimos(30);
+      case "mes": return [h.slice(0, 8) + "01", h];
+      case "datas": { const a = prende(est.de || PRIMEIRO), b = prende(est.ate || ULTIMO); return a <= b ? [a, b] : [b, a]; }
+      default: return null;
+    }
+  }
+  function textoPeriodo(iv) {
+    if (!iv) return `Desde o início, ${dpt(PRIMEIRO)} a ${dpt(ULTIMO)} · totais da Meta, dia da conta, igual ao Gestor de Anúncios`;
+    const nome = NOME_PERIODO[est.p], datas = iv[0] === iv[1] ? dpt(iv[0]) : `${dpt(iv[0])} a ${dpt(iv[1])}`;
+    return (nome ? nome + ": " : "") + datas + " · dia da conta, igual ao Gestor de Anúncios";
+  }
+  const r2 = (x) => Math.round(x * 100) / 100, r1 = (x) => Math.round(x * 10) / 10;
+  function somaDias(dias, iv) {
+    const t = Object.keys(IX).map(() => 0);
+    for (const d in dias || {}) if (d >= iv[0] && d <= iv[1]) dias[d].forEach((x, k) => { t[k] += x || 0; });
+    return (k) => t[IX[k]];
+  }
+  // As métricas de cada anúncio no período, calculadas a partir das somas (as mesmas contas de vencedores_fys.py)
+  function anuncioNoPeriodo(f, iv) {
+    if (!iv) return f;
+    const x = somaDias(f.dias, iv);
+    const g = x("gasto"), c = x("compras"), v = x("valor"), imp = x("impressoes"), cl = x("cliques"), v3 = x("vistas3s");
+    const p = Object.assign({}, f, {
+      gasto: r2(g), compras: c, valor: r2(v), roas: g ? r2(v / g) : 0, cpa: c ? r2(g / c) : null,
+      imp, cpm: imp ? r2(g / imp * 1000) : null, ctr: imp && cl ? r2(cl / imp * 100) : null,
+      hook: imp ? r1(v3 / imp * 100) : null, hold: v3 ? r1(x("thruplays") / v3 * 100) : null,
+      visitas: x("visitas"), carrinhos: x("carrinhos"), vazio: !g && !imp,
+    });
+    [p.veredito, p.porque] = veredito(p);
+    if (p.vazio && p.veredito !== "fora") p.porque = CFG_DATAS.sem_dados;
+    return p;
+  }
+  function campanhaNoPeriodo(c, iv) {
+    if (!iv) return c;
+    const x = somaDias(c.dias, iv);
+    return Object.assign({}, c, { gasto: r2(x("gasto")), compras: x("compras"), vendas: r2(x("valor")), impressoes: x("impressoes"),
+      cliques: x("cliques"), roas: x("gasto") ? r2(x("valor") / x("gasto")) : 0 });
+  }
+  // veredito() de vencedores_fys.py, com os mesmos limiares (vêm nos dados em D.regras)
+  const REGRAS = Object.assign({ vencedor_compras: 3, vencedor_roas: 2.0, promissor_roas: 1.2, paga_roas: 1.0, teste_gasto: 20.0, sinal_hook: 20.0, sinal_carrinho: 1 }, D.regras || {});
+  // como o f"{x:.0f}" do Python: um empate exato (28,5) arredonda para o par (28)
+  const eu2 = (x) => x.toFixed(2).replace(".", ","), f0 = (x) => { let n = Math.round(x); if (n - x === 0.5 && n % 2) n -= 1; return String(n); };
+  function veredito(f) {
+    const r = REGRAS;
+    if (f.estado === "DISAPPROVED") return ["fora", "Rejeitado pela Meta: não usar."];
+    if (f.compras >= r.vencedor_compras && f.roas >= r.vencedor_roas)
+      return ["vencedor", `${f0(f.compras)} compras com ROAS ${eu2(f.roas)}: pode ir já para o Google e o TikTok Shop.`];
+    if (f.compras >= 1 && f.roas >= r.promissor_roas)
+      return ["promissor", `${f0(f.compras)} compra(s) com ROAS ${eu2(f.roas)}: bom sinal, falta confirmar com mais vendas.`];
+    if (f.compras >= 1 && f.compras < r.vencedor_compras && f.roas >= r.paga_roas)
+      return ["teste", `${f0(f.compras)} compra(s) com ROAS ${eu2(f.roas)}: já se paga, faltam mais vendas para decidir.`];
+    if (f.gasto < r.teste_gasto && f.compras === 0) {
+      const sinais = [];
+      if (f.hook != null && f.hook >= r.sinal_hook) sinais.push(`gancho forte (${f0(f.hook)}%)`);
+      if (f.carrinhos >= r.sinal_carrinho) sinais.push(`${f0(f.carrinhos)} carrinho(s)`);
+      return ["teste", `Só ${eu2(f.gasto)} ${f.moeda} gastos, ainda é cedo.` + (sinais.length ? ` Já mostra ${sinais.join(" e ")}.` : "")];
+    }
+    if (f.compras === 0) return ["fraco", `${eu2(f.gasto)} ${f.moeda} sem nenhuma compra: não copiar.`];
+    if (f.roas >= r.paga_roas) return ["fraco", `${f0(f.compras)} compras com ROAS ${eu2(f.roas)}: mal se paga, não chega para copiar.`];
+    return ["fraco", `ROAS ${eu2(f.roas)}: dá prejuízo, não copiar.`];
+  }
+  // A ordem do fim do main() de vencedores_fys.py: vencedores no topo, desligados e rejeitados no fim; no meio quem vende
+  // vai à frente (compras, depois ROAS); sem vendas, o veredito e os sinais antes da venda. Sem números no período: no fim.
+  const ORDEM = { vencedor: 0, promissor: 1, teste: 2, fraco: 3, fora: 4 }, GRUPO = { vencedor: 0, fora: 2 };
+  const chave = (f) => [f.vazio ? 1 : 0, GRUPO[f.veredito] ?? 1, f.ligado ? 0 : 1, -(f.compras || 0), -(f.roas || 0),
+    ORDEM[f.veredito], -(f.carrinhos || 0), -(f.visitas || 0), -(f.hook || 0)];
+  function ordena(L) {
+    return L.map((f, i) => [chave(f), i, f]).sort((a, b) => {
+      for (let k = 0; k < a[0].length; k++) if (a[0][k] !== b[0][k]) return a[0][k] - b[0][k];
+      return a[1] - b[1];
+    }).map((x) => x[2]);
+  }
+  let IV = null, P = D.itens, PC = D.campanhas || []; // período escolhido, anúncios e campanhas com os números desse período
 
   const video = (f) => (!f.video_local && f.video_url) ? f.video_url : WEB ? `videos/${encodeURIComponent(f.codigo)}.mp4` : encodeURI(f.video_local);
   const data = (s) => s && s.length >= 10 ? s.slice(8, 10) + "/" + s.slice(5, 7) + " às " + s.slice(11, 16) : s;
@@ -240,35 +352,71 @@
   // no filtro do próprio resumo, no «Mercado» ou nos cartões das campanhas (os três mudam juntos).
   const codCamp = (c) => (/\[([A-Z]{2})\]/.exec(c.nome) || [])[1] || "";
   const soma = (L, k) => L.reduce((a, x) => a + (x[k] || 0), 0);
+  // Monta uma vez o esqueleto do resumo; os campos de data não se refazem a cada mudança (perdiam o foco ao escrever).
+  function montaResumo() {
+    const el = document.getElementById("chips");
+    if (el.dataset.montado) return;
+    el.dataset.montado = "1";
+    el.innerHTML = `<div class="kfiltros"><div class="kfiltro" id="kpais"></div>` +
+      `<div class="kfiltro" id="kdatas"${TEM_DIAS ? "" : " hidden"}></div>` +
+      `<div class="kintervalo" id="kintervalo" hidden><label>De <input type="date" id="kde"></label><label>Até <input type="date" id="kate"></label></div></div>` +
+      `<div class="knums" id="knums"></div><div class="kperiodo" id="kperiodo"${TEM_DIAS ? "" : " hidden"}></div>`;
+    const de = document.getElementById("kde"), ate = document.getElementById("kate");
+    for (const i of [de, ate]) { i.min = PRIMEIRO; i.max = ULTIMO; }
+    const muda = () => {
+      if (!de.value || !ate.value) return;
+      [est.de, est.ate] = [prende(de.value), prende(ate.value)].sort();
+      guarda(); desenha();
+    };
+    de.onchange = muda; ate.onchange = muda;
+    // Ao sair do campo, os dois mostram o período que conta (datas trocadas ou fora dos dias com números ficam acertadas)
+    const acerta = () => { if (est.p === "datas" && IV) { de.value = IV[0]; ate.value = IV[1]; } };
+    de.onblur = acerta; ate.onblur = acerta;
+  }
   function resumo() {
+    montaResumo();
     const doPais = (cod) => est.m === "todos" || cod === est.m;
-    const I = D.itens.filter((f) => doPais(f.mercado));
+    const I = P.filter((f) => doPais(f.mercado));
     // O dinheiro vem das campanhas, como no Gestor de Anúncios: contam também os anúncios que já saíram da lista.
-    const C = (D.campanhas || []).filter((c) => doPais(codCamp(c)));
+    const C = PC.filter((c) => doPais(codCamp(c)));
     const g = C.length ? soma(C, "gasto") : soma(I, "gasto");
     const c = C.length ? soma(C, "compras") : soma(I, "compras");
     const v = C.length ? soma(C, "vendas") : soma(I, "valor");
     const venc = I.filter((f) => f.veredito === "vencedor").length;
     const lig = I.filter((f) => f.ligado).length, roas = g ? v / g : 0;
     const ms = [...new Set(D.itens.map((f) => f.mercado))];
-    const filtro = `<div class="kfiltro">` + [["todos", "🌍 Todos"], ...ms.map((m) => { const f = D.itens.find((x) => x.mercado === m); return [m, f.bandeira + " " + f.pais]; })]
-      .map(([k, n]) => `<button class="f ${est.m === k ? "ativo" : ""}" data-km="${k}">${n}</button>`).join("") + `</div>`;
-    document.getElementById("chips").innerHTML = filtro + [
+    document.getElementById("kpais").innerHTML = [["todos", "🌍 Todos"], ...ms.map((m) => { const f = D.itens.find((x) => x.mercado === m); return [m, f.bandeira + " " + f.pais]; })]
+      .map(([k, n]) => `<button class="f ${est.m === k ? "ativo" : ""}" data-km="${k}">${n}</button>`).join("");
+    if (TEM_DIAS) {
+      document.getElementById("kdatas").innerHTML = PERIODOS.map(([k, n]) => `<button class="f ${est.p === k ? "ativo" : ""}" data-kp="${k}">${n}</button>`).join("");
+      document.querySelectorAll("[data-kp]").forEach((b) => b.onclick = () => {
+        est.p = b.dataset.kp;
+        if (est.p === "datas" && !(est.de && est.ate)) { est.de = PRIMEIRO; est.ate = ULTIMO; }
+        guarda(); desenha();
+      });
+      const ki = document.getElementById("kintervalo");
+      ki.hidden = est.p !== "datas";
+      if (IV && est.p === "datas") ki.querySelectorAll("input").forEach((i, k) => { if (document.activeElement !== i) i.value = IV[k]; });
+      const kp = document.getElementById("kperiodo");
+      kp.textContent = textoPeriodo(IV);
+      kp.title = D.fuso ? "Fuso da conta na Meta: " + D.fuso : "";
+    }
+    document.getElementById("knums").innerHTML = [
       ["Gasto", eur(g), `${lig} de ${I.length} ligados · lido ${data(D.lido)}`, "heroi"],
       ["ROAS", g ? nf(roas, 2) : "-", g ? (roas >= 2 ? "▲ acima de 2" : roas >= 1 ? "a pagar-se" : "▼ abaixo de 1") : "", !g ? "" : roas >= 2 ? "bom" : roas < 1 ? "mau" : ""],
-      ["Compras", nf(c), c ? `${eur(g / c)} cada` : "nenhuma ainda", ""],
+      ["Compras", nf(c), c ? `${eur(g / c)} cada` : IV ? "nenhuma neste período" : "nenhuma ainda", ""],
       ["Valor das vendas", eur(v), "registado pela Meta", ""],
       ["Vencedores", venc, "3 compras e ROAS 2+", venc ? "bom" : ""],
     ].map(([t, n, sub, cl]) => `<div class="kpi ${cl}"><small>${t}</small><b>${n}</b><i>${sub}</i></div>`).join("");
     document.querySelectorAll("[data-km]").forEach((b) => b.onclick = () => { est.m = b.dataset.km; guarda(); desenha(); marcaCamp(); });
   }
-  document.getElementById("rodape").innerHTML =
-    `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), desde que cada anúncio foi criado, lidos a ${data(D.lido)}. ` +
+  const rodape = () => document.getElementById("rodape").innerHTML =
+    `Números do Gestor de Anúncios da Meta (conta ${esc(D.conta_nome || "Holy Song LLC")}), ${IV ? "de " + (IV[0] === IV[1] ? dpt(IV[0]) : dpt(IV[0]) + " a " + dpt(IV[1])) + " (dia da conta)" : "desde que cada anúncio foi criado"}, lidos a ${data(D.lido)}. ` +
     `Hook = quem viu 3 s a dividir pelas impressões. Hold = quem viu até ao fim (ou 15 s) a dividir por quem viu 3 s. ` +
     `No Google e no TikTok Shop o link vai para a mesma página do país: copia-o pelo botão «Página».`;
 
   function filtros() {
-    const I = D.itens.filter((f) => !est.so || f.ligado);
+    const I = P.filter((f) => !est.so || f.ligado);
     const conta = (fn) => I.filter(fn).length;
     const vs = [["todos", "Todos", I.length], ...["vencedor", "promissor", "teste", "fraco"].map((k) => [k, VER[k].emo + " " + VER[k].nome, conta((f) => f.veredito === k || (k === "fraco" && f.veredito === "fora"))])];
     document.getElementById("f-veredito").innerHTML = vs.map(([k, n, c]) => `<button class="f ${est.v === k ? "ativo" : ""}" data-v="${k}">${n}<small>${c}</small></button>`).join("");
@@ -322,14 +470,24 @@
     document.getElementById("so-ligados").checked = est.so;
     // Um país guardado de outra vez que já não tem anúncios nem campanha volta a «Todos».
     if (est.m !== "todos" && !D.itens.some((f) => f.mercado === est.m) && !(D.campanhas || []).some((c) => codCamp(c) === est.m)) est.m = "todos";
+    IV = intervalo();
+    // Um período que apanha todos os dias com números («Este mês» no primeiro mês, «Datas…» do início ao fim) mostra os
+    // totais da Meta, para bater ao cêntimo com «Desde o início» (o total e os dias são lidos com segundos de diferença).
+    const so = IV && !(IV[0] <= PRIMEIRO && IV[1] >= ULTIMO) ? IV : null;
+    P = so ? ordena(D.itens.map((f) => anuncioNoPeriodo(f, so))) : D.itens;
+    PC = (D.campanhas || []).map((c) => campanhaNoPeriodo(c, so));
     resumo();
     filtros();
-    const I = D.itens.filter((f) => (!est.so || f.ligado) && (est.m === "todos" || f.mercado === est.m) &&
+    desenhaCampanhas(PC);
+    marcaCamp();
+    rodape();
+    const I = P.filter((f) => (!est.so || f.ligado) && (est.m === "todos" || f.mercado === est.m) &&
       (est.v === "todos" || f.veredito === est.v || (est.v === "fraco" && f.veredito === "fora")));
-    const venc = D.itens.filter((f) => f.veredito === "vencedor").length;
+    const venc = P.filter((f) => f.veredito === "vencedor").length;
     const aviso = document.getElementById("aviso");
     aviso.hidden = venc > 0;
-    aviso.textContent = "Ainda nenhum anúncio passou a vencedor: estão no ar há pouco tempo. Esta página atualiza-se sozinha a cada 30 minutos.";
+    aviso.textContent = IV ? "Nenhum anúncio chegou a vencedor neste período (3 compras com ROAS de 2 ou mais)."
+      : "Ainda nenhum anúncio passou a vencedor: estão no ar há pouco tempo. Esta página atualiza-se sozinha a cada 30 minutos.";
     document.getElementById("lista").innerHTML = I.length ? I.map(cartao).join("")
       : `<div class="vazio"><b>Nada aqui por agora</b>${est.v === "vencedor" ? "Quando um anúncio tiver 3 compras com ROAS de 2 ou mais, aparece aqui." : "Experimenta outro filtro."}</div>`;
     document.querySelectorAll("video[data-src]").forEach((v) => {
@@ -365,7 +523,7 @@
     document.getElementById("desc").textContent = PLAT[plat].d;
     const meta = plat === "meta";
     for (const sel of ["#chips", ".filtros", "#lista", "#rodape"]) document.querySelector(sel).hidden = !meta;
-    document.getElementById("aviso").hidden = !meta || D.itens.some((f) => f.veredito === "vencedor");
+    document.getElementById("aviso").hidden = !meta || P.some((f) => f.veredito === "vencedor");
     const v = document.getElementById("vazio-plat");
     v.hidden = meta;
     v.innerHTML = `<b>${PLAT[plat].t}: ainda sem números</b>Esta parte ainda não está ligada à conta. Quando estiver, os anúncios aparecem aqui como os da Meta.`;
